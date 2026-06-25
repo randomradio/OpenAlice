@@ -7,6 +7,12 @@
 data
 logs
 *.log
+.agents
+.claude
+.codex
+.config
+.cache
+.local
 
 # Build artifacts (we rebuild inside the image)
 dist

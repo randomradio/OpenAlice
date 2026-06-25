@@ -64,6 +64,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
         git \
+        gosu \
         tini \
     && rm -rf /var/lib/apt/lists/*
 
@@ -72,9 +73,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # a thin wrapper that pulls down the Rust binary on install).
 # Smoke-checking versions at build time fails the build loud if either
 # package broke.
+# Pin the globally-installed CLIs so Docker rebuilds do not silently change
+# workspace runtime behavior. Override at build time only when deliberately
+# rolling those tools forward.
+ARG CLAUDE_CODE_VERSION=2.1.191
+ARG OPENAI_CODEX_VERSION=0.142.1
 RUN npm install -g \
-        @anthropic-ai/claude-code \
-        @openai/codex \
+        @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION} \
+        @openai/codex@${OPENAI_CODEX_VERSION} \
     && claude --version \
     && codex --version \
     && npm cache clean --force
@@ -123,10 +129,14 @@ ENV OPENALICE_APP_HOME=/app \
     OPENALICE_UTA_PORT=47333 \
     OPENALICE_BIND_HOST=0.0.0.0
 
+RUN chmod +x /app/scripts/docker-entrypoint.sh \
+    && mkdir -p /data/home /data/workspaces \
+    && chown -R node:node /data
+
 VOLUME ["/data"]
 EXPOSE 47331
 
 # tini handles signal forwarding + zombie reaping; Guardian then spawns
 # UTA → Alice and supervises the lifecycle (see scripts/guardian/prod.mjs).
-ENTRYPOINT ["/usr/bin/tini", "--"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/app/scripts/docker-entrypoint.sh"]
 CMD ["node", "scripts/guardian/prod.mjs"]

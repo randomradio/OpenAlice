@@ -372,29 +372,42 @@ For self-hosting on a VPS or always-on box. The image bundles `claude` and
 ```bash
 git clone https://github.com/TraderAlice/OpenAlice.git
 cd OpenAlice
-docker compose up -d --build
+./scripts/run-container.sh up
 ```
 
 First-time auth (one-shot — credentials persist in the data volume so the
 container can be rebuilt without losing them):
 
 ```bash
-docker exec -it openalice claude        # OAuth: paste URL into any browser
-docker exec -it openalice codex login   # same dance for codex
+./scripts/run-container.sh auth-claude  # OAuth: paste URL into any browser
+./scripts/run-container.sh auth-codex   # same dance for codex
 ```
 
 Then open `http://<your-server>:47331` in a browser. You'll hit the
 admin-token login screen — see [Authentication](#authentication) above
 for how to retrieve the first-run token from `docker logs`.
 
+On Windows PowerShell, use the Compose-backed wrapper:
+
+```powershell
+pwsh scripts/run-container.ps1 up
+pwsh scripts/run-container.ps1 auth-claude
+pwsh scripts/run-container.ps1 auth-codex
+```
+
 **Notes**
 
 - All state — config, workspaces, claude/codex credentials, logs — lives in
-  the `openalice-data` named volume. `docker compose down -v` is the
-  factory reset.
-- Already have claude/codex auth on the host? Skip the `docker exec` step
-  by uncommenting the bind-mount lines in `docker-compose.yml` to reuse
-  your local `~/.claude` and `~/.codex`.
+  the `openalice-data` named volume. `./scripts/run-container.sh reset`
+  or `pwsh scripts/run-container.ps1 reset` is the factory reset.
+- On macOS, `run-container.sh` prefers Apple's `container compose` plugin
+  when installed. If the plugin is missing but the `container` CLI exists, it
+  falls back to `container build` / `container run`. Set
+  `OPENALICE_RUNTIME=docker` to force Docker Compose, or
+  `OPENALICE_RUNTIME=container-compose` to require the Apple compose plugin.
+- Already have claude/codex auth on the host? Skip container-local OAuth by
+  uncommenting the bind-mount lines in `docker-compose.yml` to reuse your
+  local `~/.claude` and `~/.codex`.
 - The MCP server (port 47332) is intentionally **not** exposed externally;
   it's consumed by the CLIs running inside the container only.
 - The base image is `node:22-trixie-slim` (Debian 13) because several
