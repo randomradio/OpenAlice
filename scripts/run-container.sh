@@ -105,7 +105,7 @@ run_container_status() {
 }
 
 run_container_exec() {
-  container exec -i -t "$NAME" "$@"
+  container exec -i -t --user node "$NAME" "$@"
 }
 
 run_docker_compose() {
@@ -128,8 +128,8 @@ case "$COMMAND:$runtime" in
   reset:container-compose) run_container_compose down -v ;;
   logs:container-compose) run_container_compose logs -f openalice ;;
   status:container-compose) run_container_compose ps ;;
-  auth-claude:container-compose) run_container_compose exec openalice claude ;;
-  auth-codex:container-compose) run_container_compose exec openalice codex login ;;
+  auth-claude:container-compose) run_container_compose exec --user node openalice claude ;;
+  auth-codex:container-compose) run_container_compose exec --user node openalice codex login ;;
   up:container) run_container_up ;;
   down:container) run_container_down ;;
   reset:container) run_container_reset ;;
@@ -142,8 +142,8 @@ case "$COMMAND:$runtime" in
   reset:docker) run_docker_compose down -v ;;
   logs:docker) run_docker_compose logs -f openalice ;;
   status:docker) run_docker_compose ps ;;
-  auth-claude:docker) run_docker_compose exec openalice claude ;;
-  auth-codex:docker) run_docker_compose exec openalice codex login ;;
+  auth-claude:docker) run_docker_compose exec --user node openalice claude ;;
+  auth-codex:docker) run_docker_compose exec --user node openalice codex login ;;
   *)
     usage >&2
     exit 2

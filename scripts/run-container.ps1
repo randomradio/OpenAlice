@@ -33,6 +33,6 @@ switch ($Command) {
   "reset" { Invoke-DockerCompose down -v }
   "logs" { Invoke-DockerCompose logs -f openalice }
   "status" { Invoke-DockerCompose ps }
-  "auth-claude" { Invoke-DockerCompose exec openalice claude }
-  "auth-codex" { Invoke-DockerCompose exec openalice codex login }
+  "auth-claude" { Invoke-DockerCompose exec --user node openalice claude }
+  "auth-codex" { Invoke-DockerCompose exec --user node openalice codex login }
 }

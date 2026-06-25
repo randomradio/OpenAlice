@@ -8,6 +8,7 @@ fi
 if [ ! -e /app/logs ]; then
   ln -s /data/logs /app/logs
 fi
-chown -R node:node /data
+chown node:node /data /data/home
+chown -R node:node /data/data /data/logs /data/workspaces
 
 exec gosu node "$@"
